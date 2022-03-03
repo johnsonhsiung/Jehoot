@@ -21,7 +21,7 @@ export default function Home() {
             <div className="flex lg:w-6/12 px-4 ml-auto mr-auto text-center">
               <div className='flex-1 flex-col'>
                 <div className='flex flex-col mb-2 items-center justify-center'>
-                  <div className="text-violet-300 text-3xl text-center font-normal opacity-75 mb-2">Kahoot vs Jeapordy? <br></br>Now you don't have to choose. </div>
+                  <div className="text-violet-300 text-3xl text-center font-normal opacity-75 mb-2">Kahoot vs Jeapordy? <br></br>Now you don&apos;t have to choose. </div>
                   <Image src={"/assets/Jehoot-logo.svg"} alt="Hello" width={350} height={200} />
                 </div>
                 <div className='flex-1 justify-center items-center'>
