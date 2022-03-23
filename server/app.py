@@ -21,8 +21,7 @@ app = Flask(__name__)
 @app.route('/new_user')
 def new_user():
     try: 
-        req = request.get_json()
-        auth.create_user_with_email_and_password(req['email'], req['password'])
+        auth.create_user_with_email_and_password(request.form['email'], request.form['password'])
         return ""
     except:
         return "", 409
@@ -30,8 +29,7 @@ def new_user():
 @app.route('/login')
 def login():
     try: 
-        req = request.get_json()
-        user = auth.sign_in_with_email_and_password(req['email'], req['password'])
+        user = auth.sign_in_with_email_and_password(request.form['email'], request.form['password'])
         return {'email': user['email']}
     except:
         return "", 401
