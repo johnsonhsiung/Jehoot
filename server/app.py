@@ -49,6 +49,12 @@ def submit_question(args):
 @socket.on('pick_winner')
 def pick_winner(args):
     emit(args['winner'] + ' wins the round')
+    
+# thinking about creating rooms
+@socket.on('create_game')
+def create_game():
+    # generate 4 letter code and emit it? 
+    pass
 
 if __name__ == '__main__':
     socket.run(app)
