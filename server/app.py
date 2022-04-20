@@ -53,6 +53,7 @@ def check_game_code(code):
 def submit_question(args):
     emit(args['user'] + ': ' + args['question'])
 
+# winner is also the next person who chooses the tile
 @socket.on('pick_winner')
 def pick_winner(args):
     emit(args['winner'] + ' wins the round')
@@ -63,7 +64,16 @@ def create_game():
     # generate 4 letter code, emit it, and join the user to the room? 
     pass
 
+
 if __name__ == '__main__':
     socket.run(app)
+    
+# need start game and randomly pick tile? Or however the game usually starts. 
+# client side needs a answer button. Whoever presses it first gets to answer, so another function to receive answer for only one player and block all others.
+# a function to check if answer given by player is right or wrong. if right, pick winner, if wrong go back to allowing players to press button. You can't answer again if you answered already. 
+# keep track of scores for players separated by rooms?
+# Move to next question if no one gets it right in time limit. 
+# Pick overall winner at end of questions. 
 
+# Need some sort of time limit 
 # answer presented --> questions received --> winner picked --> repeat
