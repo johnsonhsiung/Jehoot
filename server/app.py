@@ -1,10 +1,10 @@
+import json
+import random
+import questions
 from flask import Flask, request, Response
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-import json
 from bson import json_util
-import random
-import questions
 
 client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 db = client.jehoot
