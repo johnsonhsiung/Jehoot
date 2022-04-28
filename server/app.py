@@ -22,7 +22,8 @@ def gameboard():
 
     if game['current_question'] is not None and \
         game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20)):
-
+        
+        game['current_question'] = None
         new_vals = {'$set': {'current_question': None}}
         db.gameboard.update_one(filter, new_vals)
 
