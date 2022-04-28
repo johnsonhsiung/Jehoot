@@ -15,13 +15,13 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 # Get current gameboard
-@app.route('/gameboard')
+@app.route('/game/board')
 def gameboard():
     game = db.gameboard.find_one({"_id": ObjectId(request.json['game_id'])})
     return parse_json(game)
 
 # For admin to start the game
-@app.route('/create_game', methods=['POST'])
+@app.route('/game/create', methods=['POST'])
 def create_game():
     game = {
         'admin': request.json['admin'],
@@ -35,7 +35,7 @@ def create_game():
     return {'game_id': game_id, 'questions': questions.questions}
 
 # For user to join game
-@app.route('/join_game', methods=['POST'])
+@app.route('/game/join', methods=['POST'])
 def join_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -48,7 +48,7 @@ def join_game():
     return Response(status=200)
 
 # For admin to start the game
-@app.route('/start_game', methods=['POST'])
+@app.route('/game/start', methods=['POST'])
 def start_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
