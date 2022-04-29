@@ -22,7 +22,7 @@ def gameboard():
 
     if game['current_question'] is not None and \
         game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20)):
-        
+
         game['current_question'] = None
         new_vals = {'$set': {'current_question': None}}
         db.gameboard.update_one(filter, new_vals)
@@ -37,6 +37,7 @@ def create_game():
         'players': {},
         'used_questions': [],
         'current_question': None,
+        'current_answers' : [],
         'current_question_timestamp': None,
         'current_selector': None
     }
@@ -93,4 +94,19 @@ def choose_question():
     }
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
+
+@app.route('/choose_answer', methods=['POST'])
+def choose_answer():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    user_answer = {
+        '$push': {
+            "current_answers": [request.json['username'], request.json['answer']]
+        }
+    }
+    db.gameboard.update_one(filter, user_answer)
+    return Response(status=200)
+
+
+
     
