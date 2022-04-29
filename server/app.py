@@ -18,9 +18,9 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 # Get current gameboard
-@app.route('/api/game/board')
+@app.route('/api/game/board', methods=['GET'])
 def gameboard():
-    filter = {"_id": ObjectId(request.json['game_id'])}
+    filter = {"_id": ObjectId(request.args['game_id'])}
     game = db.gameboard.find_one(filter)
 
     if game['current_question'] is not None and \
@@ -41,7 +41,7 @@ def create_game():
         'players': [],
         'game_pin': ''.join(str(randint(0, 9)) for _ in range(6)),
         'questions': [],
-        'current_question': 0,
+        'current_question': None,
         'current_question_timestamp': None,
         'current_selector': None
     }
