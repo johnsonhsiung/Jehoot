@@ -98,7 +98,6 @@ def choose_question():
 @app.route('/choose_answer', methods=['POST'])
 def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
-    game = db.gameboard.find_one(filter)
     user_answer = {
         '$push': {
             "current_answers": [request.json['username'], request.json['answer']]
