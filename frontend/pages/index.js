@@ -61,6 +61,8 @@ export default function Home() {
                     <div className='pb-6 pt-4'>
                       <button className='clicky-button font-bold' onClick={(e) => { 
                         e.preventDefault();
+                        localStorage.setItem('admin', false);
+                        localStorage.setItem('gamePin', otp);
                         router.push('/room')
                        }}>
                         <span>GO!</span></button>
@@ -72,7 +74,12 @@ export default function Home() {
                     <button className='clicky-button font-bold' onClick={() => { setJoining(true) }}><span>Join Game</span></button>
                   </div>}
 
-                  {!joining && <div className='text-slate-50 text-lg text-center font-normal opacity-75 pb-2'>or <span className='underline '>Start a new game</span></div>}
+                  {!joining && <div className='text-slate-50 text-lg text-center font-normal opacity-75 pb-2'>or <span className='underline' onClick={(e)=> {
+                    e.preventDefault();
+                    localStorage.setItem('admin', true);
+                    localStorage.setItem('gamePin', otp);
+                    router.push('/room')
+                  }}>Start a new game</span></div>}
                   {/* <div className='text-slate-50 text-lg text-center font-normal opacity-25'>You will be asked to sign in before joining or starting a Game</div> */}
                 </div>
 

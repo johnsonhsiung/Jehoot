@@ -4,18 +4,21 @@ import questions
 import datetime
 from flask import Flask, request, Response
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+from bson import ObjectId
 from bson import json_util
+from random import randint
 
-client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+
+client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
+#client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 db = client.jehoot
 app = Flask(__name__)
 
 def parse_json(data):
     return json.loads(json_util.dumps(data))
 
-# For getting current gameboard
-@app.route('/game/board')
+# Get current gameboard
+@app.route('/api/game/board')
 def gameboard():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -30,22 +33,23 @@ def gameboard():
     return parse_json(game)
 
 # For admin to start the game
-@app.route('/game/create', methods=['POST'])
+@app.route('/api/game/create', methods=['POST'])
 def create_game():
     game = {
         'admin': request.json['admin'],
-        'players': {},
-        'used_questions': [],
-        'current_question': None,
         'current_answers' : [],
+        'players': [],
+        'game_pin': ''.join(str(randint(0, 9)) for _ in range(6)),
+        'questions': [],
+        'current_question': 0,
         'current_question_timestamp': None,
         'current_selector': None
     }
     game_id = str(db.gameboard.insert_one(game).inserted_id)
-    return {'game_id': game_id, 'questions': questions.questions}
+    return {'game_id': game_id}
 
 # For user to join game
-@app.route('/game/join', methods=['POST'])
+@app.route('/api/game/join', methods=['POST'])
 def join_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -57,7 +61,7 @@ def join_game():
     return Response(status=200)
 
 # For admin to start the game
-@app.route('/game/start', methods=['POST'])
+@app.route('/api/game/start', methods=['POST'])
 def start_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -70,7 +74,7 @@ def start_game():
     return Response(status=200)
 
 # For current selector to choose question
-@app.route('/choose_question', methods=['POST'])
+@app.route('/api/game/question/chose', methods=['POST'])
 def choose_question():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -95,7 +99,7 @@ def choose_question():
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
 
-@app.route('/choose_answer', methods=['POST'])
+@app.route('/api/game/question/answer', methods=['POST'])
 def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
@@ -106,6 +110,6 @@ def choose_answer():
     db.gameboard.update_one(filter, user_answer)
     return Response(status=200)
 
-
-
     
+if __name__ == "__main__":
+    app.run()
