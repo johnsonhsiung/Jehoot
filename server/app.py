@@ -1,56 +1,112 @@
-from flask import Flask, request
-from flask_socketio import SocketIO, join_room, leave_room, emit
-import pyrebase
+import json
+import random
+import questions
+import datetime
+from flask import Flask, request, Response
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from bson import json_util
 
-firebaseConfig = {
-  "apiKey": "AIzaSyD32B8mepuvdpnYNY2XekKlVfGgAtXEvJo",
-  "authDomain": "jehoot-16c84.firebaseapp.com",
-  "databaseURL": "https://jehoot-16c84-default-rtdb.firebaseio.com/",
-  "projectId": "jehoot-16c84",
-  "storageBucket": "jehoot-16c84.appspot.com",
-  "messagingSenderId": "105518725013",
-  "appId": "1:105518725013:web:44a233c436d81d07a8a89c",
-  "measurementId": "G-3KWMPMTFLB"
-}
-
-firebase = pyrebase.initialize_app(firebaseConfig)
-database = firebase.database()
-auth = firebase.auth()
-
+client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+db = client.jehoot
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'hello123'
-socket = SocketIO(app)
 
-@app.route('/new_user')
-def new_user():
-    try: 
-        auth.create_user_with_email_and_password(request.form['email'], request.form['password'])
-        return ''
-    except:
-        return '', 409
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
 
-@app.route('/login')
-def login():
-    try: 
-        user = auth.sign_in_with_email_and_password(request.form['email'], request.form['password'])
-        return {'email': user['email']}
-    except:
-        return '', 401
+# For getting current gameboard
+@app.route('/game/board')
+def gameboard():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
 
-@socket.on('join_game')
-def join_game(args):
-    join_room(args['room'])
-    emit(args['user'] + ' has joined room', to=args['room'])
+    if game['current_question'] is not None and \
+        game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20)):
+        
+        game['current_question'] = None
+        new_vals = {'$set': {'current_question': None}}
+        db.gameboard.update_one(filter, new_vals)
 
-@socket.on('submit_question')
-def submit_question(args):
-    emit(args['user'] + ': ' + args['question'])
+    return parse_json(game)
 
-@socket.on('pick_winner')
-def pick_winner(args):
-    emit(args['winner'] + ' wins the round')
+# For admin to start the game
+@app.route('/game/create', methods=['POST'])
+def create_game():
+    game = {
+        'admin': request.json['admin'],
+        'players': {},
+        'used_questions': [],
+        'current_question': None,
+        'current_answers' : [],
+        'current_question_timestamp': None,
+        'current_selector': None
+    }
+    game_id = str(db.gameboard.insert_one(game).inserted_id)
+    return {'game_id': game_id, 'questions': questions.questions}
 
-if __name__ == '__main__':
-    socket.run(app)
+# For user to join game
+@app.route('/game/join', methods=['POST'])
+def join_game():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    if request.json['username'] in game['players']:
+        return Response(status=409)
 
-# answer presented --> questions received --> winner picked --> repeat
+    new_vals = {'$set': {f'players.{request.json["username"]}': 0}}
+    db.gameboard.update_one(filter, new_vals)
+    return Response(status=200)
+
+# For admin to start the game
+@app.route('/game/start', methods=['POST'])
+def start_game():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    if request.json['username'] != game['admin']:
+        return Response(status=401)
+
+    current_selector, _ = random.choice(list(game['players'].items()))
+    new_vals = {'$set': {'current_selector': current_selector}}
+    db.gameboard.update_one(filter, new_vals)
+    return Response(status=200)
+
+# For current selector to choose question
+@app.route('/choose_question', methods=['POST'])
+def choose_question():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    if request.json['username'] != game['current_selector']:
+        return Response(status=401)
+
+    for q in game['used_questions']:
+        if request.json['question'] == q:
+            return Response(status=409)
+
+    question = request.json['question']
+    timestamp = datetime.datetime.now()
+    new_vals = {
+        '$set': {
+            'current_question': question, 
+            'current_question_timestamp': timestamp
+        },
+        '$push': {
+            "used_questions": question
+        }
+    }
+    db.gameboard.update_one(filter, new_vals)
+    return Response(status=200)
+
+@app.route('/choose_answer', methods=['POST'])
+def choose_answer():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    user_answer = {
+        '$push': {
+            "current_answers": [request.json['username'], request.json['answer']]
+        }
+    }
+    db.gameboard.update_one(filter, user_answer)
+    return Response(status=200)
+
+
+
+    
