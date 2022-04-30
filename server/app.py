@@ -1,18 +1,26 @@
+from audioop import cross
+from flask import Flask, request, Response, make_response, Blueprint
+from flask_cors import CORS, cross_origin
+
 import json
 import random
 import questions
 import datetime
-from flask import Flask, request, Response
 from pymongo import MongoClient
 from bson import ObjectId
 from bson import json_util
 from random import randint
 
+# put this sippet ahead of all your bluprints
+# blueprint can also be app~~
+
+app = Flask(__name__)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
-#client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+# client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 db = client.jehoot
-app = Flask(__name__)
 
 def parse_json(data):
     return json.loads(json_util.dumps(data))
@@ -48,7 +56,7 @@ def create_game():
     game_id = str(db.gameboard.insert_one(game).inserted_id)
     return {'game_id': game_id}
 
-# For user to join game
+#For user to join game
 @app.route('/api/game/join', methods=['POST'])
 def join_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
@@ -109,7 +117,6 @@ def choose_answer():
     }
     db.gameboard.update_one(filter, user_answer)
     return Response(status=200)
-
     
-if __name__ == "__main__":
-    app.run()
+# if __name__ == "__main__":
+#     app.run()

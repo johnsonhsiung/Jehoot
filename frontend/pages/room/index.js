@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Avatar from 'react-avatar';
 import { useQuery } from 'react-query'
 import { API_URL } from '../../constants';
-
+const axios = require('axios').default;
 
 
 
@@ -23,46 +23,80 @@ export default function Room() {
     setAdminGameCreated(localStorage.getItem('adminGameCreated'))
   }, [])
 
-  const { data: createGameResponse, refetch: createGameRefetch, isLoading: createGameLoading } = useQuery(
-    ['createGame'],
+
+  const createGameAPI = async () => {
+    return await axios.request({
+      url: `${API_URL}/api/game/create`,
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      data: { 'admin': username }
+    })
+    .then((response) => response.data)
+  }
+
+  const fetchGameBoardAPI = async (gameId) => {
+    return await axios.request({
+      url: `${API_URL}/api/game/board?game_id=${gameId}`,
+      method: 'GET',
+    })
+    .then((response) => response.data)
+  }
+
+  const joinGameAPI = async () => {
+    return await axios.request({
+      url: `${API_URL}/api/game/join`,
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      data: { 
+        'username': username,
+        'game_pin': gamePin
+      }
+    })
+    .then((response) => response.data)
+  }
+
+
+  const { data: gameBoardResponse, refetch: refetchGameBoard, isLoading: gameBoardLoading } = useQuery(
+    ['fetchGameBoard', gameId],
     async () => {
       const { data } = await axios({
-        url: `${API_URL}/api/game/create`,
-        method: 'POST',
-        data: { 'admin': username }
+        url: `${API_URL}/api/game/board/${gameId}`,
+        method: 'GET',
       });
       return data;
     }, {
-      refetchOnWindowFocus: false, 
-      enabled: false
-    });
+    refetchOnWindowFocus: false,
+    enabled: false
+  });
 
-    const { data: gameBoardResponse, refetch: refetchGameBoard, isLoading: gameBoardLoading } = useQuery(
-      ['fetchGameBoard'],
-      async () => {
-        const { data } = await axios({
-          url: `${API_URL}/api/game/board`,
-          method: 'GET',
-          data: { 'admin': username }
-        });
-        return data;
-      }, {
-        refetchOnWindowFocus: false, 
-        enabled: false
-      });
 
-  
-    const handleCreateGame = async () => {
-      if (!username) {
-        alert("Please enter a username to continue")
-      }
-      try {
-        response = await createGameRefetch();
-        setGameId(response.game_id)
-      } catch (error) {
-        alert(error)
-      }
+  const handleCreateGame = async () => {
+    if (!username) {
+      return alert("Please enter a username to continue")
     }
+    try {
+      let data = await createGameAPI();
+      setGameId(data.game_id);
+      localStorage.setItem('adminGameCreated')
+      localStorage.setItem('gameId', data.game_id)
+    } catch (error) {
+      alert(error)
+    }
+  }
+
+  const handleJoinGame = async () => {
+    if (!username) {
+      return alert("Please enter a username to continue")
+    }
+    try {
+      let data = await createGameAPI();
+      setGameId(data.game_id);
+      localStorage.setItem('adminGameCreated')
+      localStorage.setItem('gameId', data.game_id)
+    } catch (error) {
+      alert(error)
+    }
+  }
 
 
   return (
@@ -86,7 +120,7 @@ export default function Room() {
                 <div className='flex flex-col'>
 
                   <div className='text-5xl font-bold text-white'>
-                    Room Manager
+                    {admin? "Waiting for other players...": "Game Manager"}
                   </div>
 
                   <div className='p-4 text-left'>
@@ -106,9 +140,14 @@ export default function Room() {
 
                   {adminGameCreated && <div className='text-slate-50 text-2xl text-center font-normal opacity-30 mb-2'>GamePin - {gamePin}</div>}
 
-                  <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name'></input>
+                  <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value) }}></input>
                   <div className='pb-6 mt-4'>
-                    <button className='clicky-button font-bold' onClick={(e) => {
+                    <button className='clicky-button font-bold' onClick={async (e) => {
+                      if (admin) {
+                        let data = await handleCreateGame();
+                      } else {
+                        alert("not implemented yet")
+                      }
                     }}>
                       <span>{admin ? "Create" : "Join"}</span></button>
                   </div>
