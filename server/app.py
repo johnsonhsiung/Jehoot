@@ -112,11 +112,55 @@ def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
         '$push': {
-            "current_answers": [request.json['username'], request.json['answer']]
+            "current_answers": [request.json['username'], request.json['answer']] # answer is 0,1,2,3 
         }
     }
     db.gameboard.update_one(filter, user_answer)
     return Response(status=200)
+
+
+@app.route('/api/game/question/get_winner', methods=['GET']) # is it get?
+def get_winner():
+    def _update_scores(winners, question_value, user):
+        # winners is the username of winners. 
+        # question_value is the initial value of the question
+        # user is [username, score] 
+        username = user[0]
+        modifier = 0 # can change later 
+        if username in winners: 
+            index = winners.index(username)
+            if index = 0: 
+                # first place
+                modifier = 1
+            elif index = 1: 
+                modifier = 0.5 
+            else:
+                modifier = 0.25
+        return user_name[1] + int(modifier * question_value)
+    filter = {"_id": ObjectId(request.args['game_id'])} 
+    game = db.gameboard.find_one(filter)
+
+    question = game['current_question'] # I saw in chat the question looks like this? (Math, 100).
+    correct_answer = questions[question[0]][question[1]]['answer'] # trying to get the correct answer for the question which is an int
+    # current_answers looks like this [username, answer]. Can I access it like I would a list? 
+    winners = [user_answer[0] for user_answer in list(game['current_answers']) if int(user_answer[1]) == correct_answer][0:3] # gets username if answer is correct answer 
+    # first 3 winners for now. I was thinking it'd be more fun if everyone who got correct answer gets some points
+    current_players = list(game['players'])
+    current_players = [[user[0], _update_scores(winners, int(question[1]), user)] for user in current_players] # each user in current players is (username, score) right?
+    new_vals = {
+        '$set': {
+            'players': current_players,
+            'current_answers': [],
+            'current_selector': winners[0] # just the username of first winner 
+        }
+    }
+    db.gameboard.update_one(filter, new_vals)
+    return json.dump(winners) # user names of winners 
+
+   
+
+
+
     
 # if __name__ == "__main__":
 #     app.run()
