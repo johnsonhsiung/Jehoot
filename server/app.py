@@ -10,6 +10,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from bson import json_util
 from random import randint
+import copy
 
 # put this sippet ahead of all your bluprints
 # blueprint can also be app~~
@@ -43,12 +44,17 @@ def gameboard():
 # For admin to start the game
 @app.route('/api/game/create', methods=['POST'])
 def create_game():
+    # Put the property 'used' in all the questions. Trying to keep questions constant. 
+    questions_copy = copy.deepcopy(questions)
+    for key, value in questions_copy.items():
+        for key1, value1 in value.items():
+            value1['used'] = False 
     game = {
         'admin': request.json['admin'],
         'current_answers' : [],
         'players': [],
         'game_pin': ''.join(str(randint(0, 9)) for _ in range(6)),
-        'questions': [],
+        'questions': questions_copy,
         'current_question': None,
         'current_question_timestamp': None,
         'current_selector': None
