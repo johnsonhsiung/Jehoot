@@ -44,7 +44,7 @@ def gameboard():
 # For admin to start the game
 @app.route('/api/game/create', methods=['POST'])
 def create_game():
-    # Put the property 'used' in all the questions. Trying to keep questions constant. 
+    # Put the property 'used' in all the questions. We could also just manually add property to questions.py. 
     questions_copy = copy.deepcopy(questions)
     for key, value in questions_copy.items():
         for key1, value1 in value.items():
@@ -135,10 +135,10 @@ def get_winner():
         modifier = 0 # can change later 
         if username in winners: 
             index = winners.index(username)
-            if index = 0: 
+            if index == 0: 
                 # first place
                 modifier = 1
-            elif index = 1: 
+            elif index == 1: 
                 modifier = 0.5 
             else:
                 modifier = 0.25
