@@ -4,7 +4,7 @@ from flask_cors import CORS, cross_origin
 
 import json
 import random
-import questions
+from questions import questions
 import datetime
 from pymongo import MongoClient
 from bson import ObjectId
@@ -19,13 +19,16 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
-# client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+# client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
+client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 db = client.jehoot
 
 def parse_json(data):
     return json.loads(json_util.dumps(data))
 
+@app.route('/api/test')
+def test():
+    return {'hello': 'hi'}
 # Get current gameboard
 @app.route('/api/game/board', methods=['GET'])
 def gameboard():
@@ -44,17 +47,14 @@ def gameboard():
 # For admin to start the game
 @app.route('/api/game/create', methods=['POST'])
 def create_game():
-    # Put the property 'used' in all the questions. We could also just manually add property to questions.py. 
-    questions_copy = copy.deepcopy(questions)
-    for key, value in questions_copy.items():
-        for key1, value1 in value.items():
-            value1['used'] = False 
+    
+
     game = {
         'admin': request.json['admin'],
         'current_answers' : [],
-        'players': [],
+        'players': [(request.json['admin'],0)],
         'game_pin': ''.join(str(randint(0, 9)) for _ in range(6)),
-        'questions': questions_copy,
+        'questions': questions,
         'current_question': None,
         'current_question_timestamp': None,
         'current_selector': None
@@ -67,10 +67,10 @@ def create_game():
 def join_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
-    if request.json['username'] in game['players']:
+    if request.json['username'] in [player_and_score[0] for player_and_score in game['players']]:
         return Response(status=409)
 
-    new_vals = {'$set': {f'players.{request.json["username"]}': 0}}
+    new_vals = {'$push' : {'players': (request.json['username'], 0)}}
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
 
@@ -82,7 +82,7 @@ def start_game():
     if request.json['username'] != game['admin']:
         return Response(status=401)
 
-    current_selector, _ = random.choice(list(game['players'].items()))
+    current_selector, _ = random.choice(list(game['players']))
     new_vals = {'$set': {'current_selector': current_selector}}
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
