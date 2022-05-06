@@ -88,16 +88,17 @@ def start_game():
     return Response(status=200)
 
 # For current selector to choose question
-@app.route('/api/game/question/chose', methods=['POST'])
+@app.route('/api/game/question/choose', methods=['POST'])
 def choose_question():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
     if request.json['username'] != game['current_selector']:
         return Response(status=401)
 
-    for q in game['used_questions']:
-        if request.json['question'] == q:
-            return Response(status=409)
+    # I commented it out because frontend has access to used questions now, so I'm assuming the logic will be there
+    # for q in game['used_questions']:
+    #     if request.json['question'] == q:
+    #         return Response(status=409)
 
     question = request.json['question']
     timestamp = datetime.datetime.now()
@@ -105,9 +106,6 @@ def choose_question():
         '$set': {
             'current_question': question, 
             'current_question_timestamp': timestamp
-        },
-        '$push': {
-            "used_questions": question
         }
     }
     db.gameboard.update_one(filter, new_vals)
