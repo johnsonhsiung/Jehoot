@@ -1,6 +1,5 @@
-from audioop import cross
-from flask import Flask, request, Response, make_response, Blueprint
-from flask_cors import CORS, cross_origin
+from flask import Flask, request, Response
+from flask_cors import CORS
 
 import json
 import random
@@ -9,7 +8,6 @@ import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 from bson import json_util
-from random import randint
 import copy
 
 # put this sippet ahead of all your bluprints
@@ -26,9 +24,6 @@ db = client.jehoot
 def parse_json(data):
     return json.loads(json_util.dumps(data))
 
-@app.route('/api/test')
-def test():
-    return {'hello': 'hi'}
 # Get current gameboard
 @app.route('/api/game/board', methods=['GET'])
 def gameboard():
@@ -47,14 +42,16 @@ def gameboard():
 # For admin to start the game
 @app.route('/api/game/create', methods=['POST'])
 def create_game():
-    
-
+    # Put the property 'used' in all the questions. We could also just manually add property to questions.py. 
+    questions_copy = copy.deepcopy(questions)
+    for _, value in questions_copy.items():
+        for _, value1 in value.items():
+            value1['used'] = False 
     game = {
         'admin': request.json['admin'],
         'current_answers' : [],
-        'players': [(request.json['admin'],0)],
-        'game_pin': ''.join(str(randint(0, 9)) for _ in range(6)),
-        'questions': questions,
+        'players': [],
+        'questions': questions_copy,
         'current_question': None,
         'current_question_timestamp': None,
         'current_selector': None
