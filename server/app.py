@@ -49,8 +49,8 @@ def create_game():
             value1['used'] = False 
     game = {
         'admin': request.json['admin'],
-        'current_answers' : [],
-        'players': [],
+        'current_answers' : {}, # {'Rohin' : 0, 'Johnson' : 0, ...}
+        'players': {}, # {‘Rohin’: {'total_points: 67', 'last_round_points': 5}, 'Johnson' : {'total_points': 5, 'last_round_points' : 5},...} 
         'questions': questions_copy,
         'current_question': None,
         'current_question_timestamp': None,
@@ -64,10 +64,10 @@ def create_game():
 def join_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
-    if request.json['username'] in [player_and_score[0] for player_and_score in game['players']]:
+    if request.json['username'] in game['players'].keys():
         return Response(status=409)
 
-    new_vals = {'$push' : {'players': (request.json['username'], 0)}}
+    new_vals = {'$push' : {'players': {request.json['username']: {'total_points': 0, 'last_round_points' : 0}}}}
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
 
@@ -79,7 +79,7 @@ def start_game():
     if request.json['username'] != game['admin']:
         return Response(status=401)
 
-    current_selector, _ = random.choice(list(game['players']))
+    current_selector = random.choice(list((game['players'].keys())))
     new_vals = {'$set': {'current_selector': current_selector}}
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
@@ -112,8 +112,8 @@ def choose_question():
 def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
-        '$push': {
-            "current_answers": [request.json['username'], request.json['answer']] # answer is 0,1,2,3 
+        '$set': {
+            "current_answers": {request.json['username']: request.json['answer']} # answer is 0,1,2,3 
         }
     }
     db.gameboard.update_one(filter, user_answer)
@@ -144,8 +144,9 @@ def get_winner():
     question = game['current_question'] # I saw in chat the question looks like this? (Math, 100).
     correct_answer = questions[question[0]][question[1]]['answer'] # trying to get the correct answer for the question which is an int
     # current_answers looks like this [username, answer]. Can I access it like I would a list? 
-    winners = [user_answer[0] for user_answer in list(game['current_answers']) if int(user_answer[1]) == correct_answer][0:3] # gets username if answer is correct answer 
+    winners = [user for user, answer in game['current_answers'].items() if int(answer) == correct_answer][0:3] # gets username if answer is correct answer 
     # first 3 winners for now. I was thinking it'd be more fun if everyone who got correct answer gets some points
+    # we changed players to dict so this part won't work. 
     current_players = list(game['players'])
     current_players = [[user[0], _update_scores(winners, int(question[1]), user)] for user in current_players] # each user in current players is (username, score) right?
     new_vals = {
