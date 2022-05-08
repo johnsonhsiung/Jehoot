@@ -66,8 +66,7 @@ def join_game():
     game = db.gameboard.find_one(filter)
     if request.json['username'] in game['players'].keys():
         return Response(status=409)
-
-    new_vals = {'$push' : {'players': {request.json['username']: {'total_points': 0, 'last_round_points' : 0}}}}
+    new_vals = {'$set' : {f'players.{request.json["username"]}': {'total_points': 0, 'last_round_points' : 0}}}
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
 
@@ -113,7 +112,7 @@ def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
         '$set': {
-            "current_answers": {request.json['username']: request.json['answer']} # answer is 0,1,2,3 
+            f'current_answers.{request.json["username"]}': request.json['answer'] # answer is 0,1,2,3 
         }
     }
     db.gameboard.update_one(filter, user_answer)
