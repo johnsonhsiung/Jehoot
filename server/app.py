@@ -52,6 +52,7 @@ def create_game():
         'current_answers' : {}, # {'Rohin' : 0, 'Johnson' : 0, ...}
         'players': {}, # {‘Rohin’: {'total_points: 67', 'last_round_points': 5}, 'Johnson' : {'total_points': 5, 'last_round_points' : 5},...} 
         'questions': questions_copy,
+        'game_pin': ''.join(str(random.randint(0, 9)) for _ in range(6)),
         'current_question': None,
         'current_question_timestamp': None,
         'current_selector': None,
@@ -63,7 +64,11 @@ def create_game():
 #For user to join game
 @app.route('/api/game/join', methods=['POST'])
 def join_game():
-    filter = {"_id": ObjectId(request.json['game_id'])}
+    if (request.json['game_id']):
+        filter = {"_id": ObjectId(request.json['game_id'])}
+    else:
+        filter = {"game_pin": ObjectId(request.json['game_pin'])}
+        
     game = db.gameboard.find_one(filter)
     if request.json['username'] in game['players'].keys():
         return Response(status=409)
@@ -102,7 +107,8 @@ def choose_question():
     new_vals = {
         '$set': {
             'current_question': question, 
-            'current_question_timestamp': timestamp
+            'current_question_timestamp': timestamp,
+            'current_selector': None
         }
     }
     db.gameboard.update_one(filter, new_vals)
@@ -128,6 +134,7 @@ def end_game():
     new_vals = {
         '$set': {
             'status': 'COMPLETED', 
+            'gamepin': None
         }
     }
     db.gameboard.update_one(filter, new_vals)
@@ -174,9 +181,5 @@ def get_winner():
     return json.dump(winners) # user names of winners 
 
    
-
-
-
-    
 if __name__ == "__main__":
-    app.run()
+    app.run(port=8080)

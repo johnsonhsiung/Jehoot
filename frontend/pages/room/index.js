@@ -16,10 +16,12 @@ export default function Room() {
   const [username, setUsername] = useState('')
   const [gamePin, setGamePin] = useState(false);
   const [gameId, setGameId] = useState(null);
+  const [gameBoard, setGameBoard] = useState(null);
 
   useEffect(() => {
     setGamePin(localStorage.getItem('gamePin'))
     setAdmin(localStorage.getItem('admin'))
+    setGameId(localStorage.getItem('gameId'))
     setAdminGameCreated(localStorage.getItem('adminGameCreated'))
   }, [])
 
@@ -28,46 +30,64 @@ export default function Room() {
     return await axios.request({
       url: `${API_URL}/api/game/create`,
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       data: { 'admin': username }
     })
-    .then((response) => response.data)
+      .then((response) => response.data)
   }
 
-  const fetchGameBoardAPI = async (gameId) => {
+  const fetchGameBoardAPI = async (gameIdParam) => {
     return await axios.request({
-      url: `${API_URL}/api/game/board?game_id=${gameId}`,
+      url: `${API_URL}/api/game/board?game_id=${gameIdParam}`,
       method: 'GET',
     })
-    .then((response) => response.data)
+      .then((response) => response.data)
   }
 
   const joinGameAPI = async () => {
     return await axios.request({
       url: `${API_URL}/api/game/join`,
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      data: { 
+      headers: { 'Content-Type': 'application/json' },
+      data: {
         'username': username,
         'game_pin': gamePin
       }
     })
-    .then((response) => response.data)
+      .then((response) => response.data)
   }
 
 
-  const { data: gameBoardResponse, refetch: refetchGameBoard, isLoading: gameBoardLoading } = useQuery(
-    ['fetchGameBoard', gameId],
-    async () => {
-      const { data } = await axios({
-        url: `${API_URL}/api/game/board/${gameId}`,
-        method: 'GET',
-      });
-      return data;
-    }, {
-    refetchOnWindowFocus: false,
-    enabled: false
-  });
+  let polling = false;
+  useEffect(() => {
+    if (gameId !== null && !polling) {
+      alert("init");
+      setInterval(() => {
+        try {
+          let data = fetchGameBoardAPI(gameId);
+          setGameBoard(data);
+          setGamePin(data.)
+          console.log(data);
+        } catch (error) {
+          alert("Unexpected Error in fetching gameboard, please contact your admin. ")
+        }
+      }, 1000);
+    }
+  }, gameId, []);
+
+
+  // const { data: gameBoardResponse, refetch: refetchGameBoard, isLoading: gameBoardLoading } = useQuery(
+  //   ['fetchGameBoard', gameId],
+  //   async () => {
+  //     const { data } = await axios({
+  //       url: `${API_URL}/api/game/board/${gameId}`,
+  //       method: 'GET',
+  //     });
+  //     return data;
+  //   }, {
+  //   refetchOnWindowFocus: false,
+  //   enabled: false
+  // });
 
 
   const handleCreateGame = async () => {
@@ -77,7 +97,8 @@ export default function Room() {
     try {
       let data = await createGameAPI();
       setGameId(data.game_id);
-      localStorage.setItem('adminGameCreated')
+      setAdminGameCreated(true);
+      localStorage.setItem('adminGameCreated', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
       alert(error)
@@ -120,38 +141,59 @@ export default function Room() {
                 <div className='flex flex-col'>
 
                   <div className='text-5xl font-bold text-white'>
-                    {admin? "Waiting for other players...": "Game Manager"}
+                    {admin ? "Waiting for other players..." : "Game Manager"}
                   </div>
 
-                  <div className='p-4 text-left'>
-                    <div className='mt-2'>
-                      <Avatar name="rohinrohin" round="10px" size="35px" />
-                      <span className='text-slate-50 text-2xl ml-2 align-middle'>rohinrohin</span>
-                    </div>
-                    <div className='mt-2'>
-                      <Avatar name="yy" round="10px" size="35px" />
-                      <span className='text-slate-50 text-2xl ml-2 align-middle'>yy</span>
-                    </div>
-                    <div className='mt-2'>
-                      <Avatar name="kaushal" round="10px" size="35px" />
-                      <span className='text-slate-50 text-2xl ml-2 align-middle'>kaushal</span>
-                    </div>
-                  </div>
+                      <div className='p-4 text-left'>
+                  {gameBoard?.current_players?.map((player) => {
+                    return (
+                        <div className='mt-2'>
+                          <Avatar name={player.username} round="10px" size="35px" />
+                          <span className='text-slate-50 text-2xl ml-2 align-middle'>{player.username}</span>
+                        </div>
+                        )
+                  })}
+                      </div>
+                        {/* <div className='mt-2'>
+                          <Avatar name="yy" round="10px" size="35px" />
+                          <span className='text-slate-50 text-2xl ml-2 align-middle'>yy</span>
+                        </div>
+                        <div className='mt-2'>
+                          <Avatar name="kaushal" round="10px" size="35px" />
+                          <span className='text-slate-50 text-2xl ml-2 align-middle'>kaushal</span>
+                        </div> */}
 
-                  {adminGameCreated && <div className='text-slate-50 text-2xl text-center font-normal opacity-30 mb-2'>GamePin - {gamePin}</div>}
+                  { adminGameCreated && <div className='text-slate-50 text-2xl text-center font-normal opacity-30 mb-2'>GamePin - {gamePin}</div> }
 
-                  <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value) }}></input>
-                  <div className='pb-6 mt-4'>
-                    <button className='clicky-button font-bold' onClick={async (e) => {
-                      if (admin) {
-                        let data = await handleCreateGame();
-                      } else {
-                        alert("not implemented yet")
-                      }
-                    }}>
-                      <span>{admin ? "Create" : "Join"}</span></button>
-                  </div>
+                    {
+                      !adminGameCreated &&
+                      <>
+                        <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value); }}></input><div className='pb-6 mt-4'>
+                          <button className='clicky-button font-bold' onClick={async (e) => {
+                            if (admin) {
+                              let data = await handleCreateGame();
+                            } else {
+                              alert("not implemented yet");
+                            }
+                          }}>
+                            <span>{admin ? "Create" : "Join"}</span></button>
+                        </div>
+                      </>
+                    }
 
+                    {
+                      adminGameCreated && <div className='p-2 mx-4 rounded-md'>
+                        <button className='clicky-button font-bold' onClick={async (e) => {
+                          if (admin) {
+                            let data = await handleCreateGame();
+                          } else {
+                            alert("not implemented yet");
+                          }
+                        }}>
+                          <span>Start</span>
+                        </button>
+                      </div>
+                    }
 
 
                 </div>
