@@ -54,7 +54,8 @@ def create_game():
         'questions': questions_copy,
         'current_question': None,
         'current_question_timestamp': None,
-        'current_selector': None
+        'current_selector': None,
+        'status': 'RUNNING'
     }
     game_id = str(db.gameboard.insert_one(game).inserted_id)
     return {'game_id': game_id}
@@ -117,6 +118,20 @@ def choose_answer():
     }
     db.gameboard.update_one(filter, user_answer)
     return Response(status=200)
+
+@app.route('/api/game/end', methods=['POST'])
+def end_game():
+    filter = {"_id": ObjectId(request.json['game_id'])}
+    game = db.gameboard.find_one(filter)
+    if request.json['username'] != game['admin']:
+        return Response(status=401)
+    new_vals = {
+        '$set': {
+            'status': 'COMPLETED', 
+        }
+    }
+    db.gameboard.update_one(filter, new_vals)
+    return Response(status=200)    
 
 
 @app.route('/api/game/question/get_winner', methods=['GET']) # is it get?
