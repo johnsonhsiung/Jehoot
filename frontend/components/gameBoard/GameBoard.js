@@ -105,6 +105,8 @@ class App extends React.Component {
             width={cardWidth}
             question={question}
             key={categoryIndex + "-" + questionIndex}
+            getChosenQuestion={this.props.getChosenQuestion}
+            category={category}
           />
         );
       });

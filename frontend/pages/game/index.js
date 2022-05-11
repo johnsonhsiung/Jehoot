@@ -8,9 +8,20 @@ export default function game() {
   const [playersData, setPlayersData] = useState([]);
   const getData = () => {
     return fetch(
-      Config["BACKEND_URL"] + "/board?game_id=627ac9198073d592f58e92da"
+      Config["BACKEND_URL"] + "/board?game_id=627c28cb29c69f73685278dd"
     ).then((response) => response.json().then((data) => setGameData(data)));
   };
+
+  const [isSelector, setIsSelector] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (gameData["current_selector"] == localStorage.getItem("username")) {
+        setIsSelector(true);
+      } else {
+        setIsSelector(false);
+      }
+    }
+  }, [gameData]);
 
   useEffect(() => {
     let arr = [];
@@ -32,6 +43,31 @@ export default function game() {
       getData();
     }, 1000);
   }, []);
+
+  function getChosenQuestion(category, points) {
+    if (isSelector) {
+      // Send Category and points to teh backend
+      console.log(category, points);
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: { category: category, points: points },
+          game_id: gameData["_id"]["$oid"],
+          username: localStorage.getItem("username"),
+        }),
+      };
+      fetch(Config["BACKEND_URL"] + "/question/choose", requestOptions).then(
+        (response) => {
+          if (response.status != 200) {
+            alert("Error! Please contact the Admin.");
+          }
+        }
+      );
+    } else {
+      console.log("Not");
+    }
+  }
 
   return (
     <div
@@ -63,9 +99,20 @@ export default function game() {
           )}
         </div>
       </div>
+      <div>
+        {isSelector && gameData["current_selector"] != null ? (
+          <>Please choose a question.</>
+        ) : (
+          <>
+            {gameData["current_selector"]} is choosing the category. Please
+            wait!
+          </>
+        )}
+      </div>
       {/* <div className="w-auto h-auto"> */}
-      <GameBoard entireData={gameData}/>
+      <GameBoard entireData={gameData} getChosenQuestion={getChosenQuestion} />
       {/* </div> */}
+      {/* <Modal open={gameData['current_selector'] != null} username={} data={gameData}/> */}
     </div>
   );
 }

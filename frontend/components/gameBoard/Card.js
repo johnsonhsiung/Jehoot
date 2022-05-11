@@ -44,6 +44,10 @@ class Card extends React.Component {
       return this.props.question.options[this.props.question.answer]
   }
 
+  handleClick(){
+    this.props.getChosenQuestion(this.props.category['category'], this.props.question.points);
+  }
+
   getQuestion() {
     return (
       <div>
@@ -99,7 +103,7 @@ class Card extends React.Component {
       <div
         style={style}
         className={className}
-        onClick={this.clickHandler.bind(this)}
+        onClick={this.handleClick.bind(this)}
         onTransitionEnd={this.transitionEndHandler.bind(this)}
       >
         <div className="card">

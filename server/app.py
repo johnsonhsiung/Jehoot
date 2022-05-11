@@ -14,8 +14,8 @@ import copy
 # blueprint can also be app~~
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-app.config['CORS_HEADERS'] = 'Content-Type'
+# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+# app.config['CORS_HEADERS'] = 'Content-Type'
 
 # client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
 client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
