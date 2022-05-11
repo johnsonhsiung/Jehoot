@@ -64,7 +64,7 @@ export default function game() {
         </div>
       </div>
       {/* <div className="w-auto h-auto"> */}
-      <GameBoard />
+      <GameBoard entireData={gameData}/>
       {/* </div> */}
     </div>
   );
