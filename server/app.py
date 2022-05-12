@@ -70,17 +70,18 @@ def create_game():
 #For user to join game
 @app.route('/api/game/join', methods=['POST'])
 def join_game():
-    if (request.json['game_id']):
+    if ('game_id' in request.json):
         filter = {"_id": ObjectId(request.json['game_id'])}
     else:
-        filter = {"game_pin": ObjectId(request.json['game_pin'])}
+        filter = {"game_pin": request.json['game_pin']}
         
     game = db.gameboard.find_one(filter)
     if request.json['username'] in game['players'].keys():
         return Response(status=409)
     new_vals = {'$set' : {f'players.{request.json["username"]}': {'total_points': 0, 'last_round_points' : 0}}}
     db.gameboard.update_one(filter, new_vals)
-    return Response(status=200)
+    print(str(game['_id']))
+    return {'game_id': str(game['_id'])}
 
 # For admin to start the game
 @app.route('/api/game/start', methods=['POST'])

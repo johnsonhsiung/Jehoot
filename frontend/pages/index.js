@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Head from 'next/head';
 import OtpInput from 'react-otp-input';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router'
 
 
@@ -10,6 +10,9 @@ export default function Home() {
   const [joining, setJoining] = useState(false);
   const router = useRouter()
 
+  useEffect(() => {
+    localStorage.clear();
+  }, [])
 
   const handleChange = (otp) => {
     setOtp(otp);
