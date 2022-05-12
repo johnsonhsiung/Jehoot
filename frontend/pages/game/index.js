@@ -8,7 +8,7 @@ export default function game() {
   const [playersData, setPlayersData] = useState([]);
   const getData = () => {
     return fetch(
-      Config["BACKEND_URL"] + "/board?game_id=627c51ba74fd17af054bceed"
+      Config["BACKEND_URL"] + "/board?game_id=" + localStorage.getItem("gameId")
     ).then((response) => response.json().then((data) => setGameData(data)));
   };
 
@@ -110,8 +110,8 @@ export default function game() {
         )}
       </div>
       {/* <div className="w-auto h-auto"> */}
+
       <GameBoard entireData={gameData} getChosenQuestion={getChosenQuestion} />
-      {/* </div> */}
       {/* <Modal open={gameData['current_selector'] != null} username={} data={gameData}/> */}
     </div>
   );

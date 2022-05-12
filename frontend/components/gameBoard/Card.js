@@ -59,7 +59,7 @@ class Card extends React.Component {
           fetch(Config["BACKEND_URL"] + "/question/answer", requestOptions).then(
             (response) => {
               if (response.status != 200) {
-                alert("Error! Please contact the Admin.");
+                console.log("Error! Please contact the Admin.");
               }
             }
           );
