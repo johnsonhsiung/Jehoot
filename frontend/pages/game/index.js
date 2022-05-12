@@ -99,7 +99,7 @@ export default function Game() {
         temp_obj["total_points"] = value["total_points"];
         arr.push(temp_obj);
       }
-      arr.sort((a, b) => a["total_points"] - b["total_points"]);
+      arr.sort((a, b) => b["total_points"] - a["total_points"]);
     }
     setPlayersData(arr);
   }, [gameData]);
