@@ -51,7 +51,7 @@ questions = {
             'used' :False
         }
     },
-    'WORLD WAR I ': {
+    'WORLD WAR I': {
         '100': {
             'question': 'World War I ended in?',
             'answers': ['1925', '1918', '1920', '1915'],
