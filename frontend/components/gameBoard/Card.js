@@ -46,25 +46,6 @@ class Card extends React.Component {
       }
     } else {
       if (this.state.view == "question") {
-        if (this.state.answer != null) {
-          const requestOptions = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              answer: this.state.answer,
-              game_id: this.props.allData["_id"]["$oid"],
-              username: localStorage.getItem("username"),
-            }),
-          };
-          fetch(
-            Config["BACKEND_URL"] + "/question/answer",
-            requestOptions
-          ).then((response) => {
-            if (response.status != 200) {
-              console.log("Error! Please contact the Admin.");
-            }
-          });
-        }
         this.setState({ view: "points", flipping: true });
       }
     }
@@ -97,7 +78,25 @@ class Card extends React.Component {
     }
 
   handleAnswer(answer) {
-    this.setState({ answer: answer, isAnswerSelected: true });
+    this.setState({answer: answer});
+    if(answer != null){
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answer: answer,
+          game_id: this.props.allData["_id"]["$oid"],
+          username: localStorage.getItem("username"),
+        }),
+      };
+      fetch(Config["BACKEND_URL"] + "/question/answer", requestOptions).then(
+        (response) => {
+          if (response.status != 200) {
+            console.log("Error! Please contact the Admin.");
+          }
+        }
+      );
+    }
   }
 
   getQuestion() {
