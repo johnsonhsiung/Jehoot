@@ -32,7 +32,7 @@ function getAnimationSettings(originXA, originXB) {
   };
 }
 
-export default function game() {
+export default function Game() {
   const refAnimationInstance = useRef(null);
   const [intervalId, setIntervalId] = useState();
 

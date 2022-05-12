@@ -181,7 +181,7 @@ export default function Room() {
                   <div className='p-4 text-left'>
                     {gameBoard?.players && Object.keys(gameBoard.players).map((username) => {
                       return (
-                        <div className='mt-2'>
+                        <div key={username} className='mt-2'>
                           <Avatar name={username} round="10px" size="35px" />
                           <span className='text-slate-50 text-2xl ml-2 align-middle'>{username}</span>
                         </div>

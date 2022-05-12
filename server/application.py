@@ -13,9 +13,9 @@ import copy
 # put this sippet ahead of all your bluprints
 # blueprint can also be app~~
 
-app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-app.config['CORS_HEADERS'] = 'Content-Type'
+application = Flask(__name__)
+cors = CORS(application, resources={r"/api/*": {"origins": "*"}})
+application.config['CORS_HEADERS'] = 'Content-Type'
 
 # client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
 client = MongoClient(
@@ -29,7 +29,7 @@ def parse_json(data):
 # Get current gameboard
 
 
-@app.route('/api/game/board', methods=['GET'])
+@application.route('/api/game/board', methods=['GET'])
 def gameboard():
     filter = {"_id": ObjectId(request.args['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -65,7 +65,7 @@ def gameboard():
 # For admin to start the game
 
 
-@app.route('/api/game/create', methods=['POST'])
+@application.route('/api/game/create', methods=['POST'])
 def create_game():
     # Put the property 'used' in all the questions. We could also just manually add property to questions.py.
     questions_copy = copy.deepcopy(questions)
@@ -92,7 +92,7 @@ def create_game():
 # For user to join game
 
 
-@app.route('/api/game/join', methods=['POST'])
+@application.route('/api/game/join', methods=['POST'])
 def join_game():
     if ('game_id' in request.json):
         filter = {"_id": ObjectId(request.json['game_id'])}
@@ -111,7 +111,7 @@ def join_game():
 # For admin to start the game
 
 
-@app.route('/api/game/start', methods=['POST'])
+@application.route('/api/game/start', methods=['POST'])
 def start_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -126,7 +126,7 @@ def start_game():
 # For current selector to choose question
 
 
-@app.route('/api/game/question/choose', methods=['POST'])
+@application.route('/api/game/question/choose', methods=['POST'])
 def choose_question():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -152,7 +152,7 @@ def choose_question():
     return Response(status=200)
 
 
-@app.route('/api/game/question/answer', methods=['POST'])
+@application.route('/api/game/question/answer', methods=['POST'])
 def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
@@ -164,7 +164,7 @@ def choose_answer():
     return Response(status=200)
 
 
-@app.route('/api/game/end', methods=['POST'])
+@application.route('/api/game/end', methods=['POST'])
 def end_game():
     filter = {"_id": ObjectId(request.json['game_id'])}
     game = db.gameboard.find_one(filter)
@@ -179,8 +179,11 @@ def end_game():
     db.gameboard.update_one(filter, new_vals)
     return Response(status=200)
 
+@application.route('/', methods=['GET'])  # is it get?
+def hello():
+    return "Hello World"
 
-@app.route('/api/game/question/get_winner', methods=['GET'])  # is it get?
+@application.route('/api/game/question/get_winner', methods=['GET'])  # is it get?
 def get_winner():
     def _update_scores(winners, question_value, user):
         # winners is the username of winners.
@@ -226,4 +229,5 @@ def get_winner():
 
 
 if __name__ == "__main__":
-    app.run(port=8080)
+    # application.run(port=8080)
+    application.run()

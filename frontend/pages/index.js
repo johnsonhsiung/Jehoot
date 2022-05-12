@@ -71,7 +71,7 @@ export default function Home() {
                         <span>GO!</span></button>
                     </div>}
 
-                  {joining && <div className='text-slate-50 text-lg text-center font-normal opacity-75 pb-2'>Don't have a code? <span className='underline '>Start a new game</span></div>}
+                  {joining && <div className='text-slate-50 text-lg text-center font-normal opacity-75 pb-2'>Don&apos;t have a code? <span className='underline '>Start a new game</span></div>}
 
                   {!joining && <div className='pb-6'>
                     <button className='clicky-button font-bold' onClick={() => { setJoining(true) }}><span>Join Game</span></button>

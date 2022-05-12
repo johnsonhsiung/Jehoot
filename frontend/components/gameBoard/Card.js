@@ -107,7 +107,7 @@ class Card extends React.Component {
           {/* <fieldset> */}
           {this.props.question.options.map((item, index) => {
             return (
-              <label>
+              <label key={index}>
                 <input
                   type="radio"
                   name="jehoot"
