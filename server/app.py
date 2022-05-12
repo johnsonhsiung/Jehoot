@@ -14,8 +14,8 @@ import copy
 # blueprint can also be app~~
 
 app = Flask(__name__)
-# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-# app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000')
 client = MongoClient('mongodb+srv://backend:hello123@cluster0.xy4s2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
@@ -32,9 +32,12 @@ def gameboard():
 
     if game['current_question'] is not None and \
         game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20)):
-
         game['current_question'] = None
-        new_vals = {'$set': {'current_question': None}}
+        new_vals = {'$set': {
+            'current_question': None, 
+            'current_selector': random.choice(list((game['players'].keys())))
+            }
+            }
         db.gameboard.update_one(filter, new_vals)
 
     return parse_json(game)
