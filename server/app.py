@@ -37,7 +37,7 @@ def gameboard():
         i = 3
         update_scores = {}
         for ans in game['current_answers']:
-            if ans[1] == questions[game['current_question'][0]][game['current_question'][1]]['answer']:
+            if ans[1] == questions[game['current_question']['category']][game['current_question']['points']]['answer']:
                 update_scores[ans[0]] = 50*i
                 if i == 3:
                     new_current_selector = ans[0]
@@ -130,7 +130,7 @@ def choose_question():
             'current_question': question, 
             'current_question_timestamp': timestamp,
             'current_selector': None,
-            f"questions.{request.json['question'][0]}.{request.json['question'][1]}.used": True
+            f"questions.{request.json['question']['category']}.{request.json['question']['points']}.used": True
         }
     }
     db.gameboard.update_one(filter, new_vals)
