@@ -46,6 +46,19 @@ export default function Room() {
       .then((response) => response.data)
   }
 
+  const startGameAPI = async () => {
+    return await axios.request({
+      url: `${API_URL}/api/game/start`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: {
+        'username': username,
+        'game_id': gameId
+      }
+    })
+      .then((response) => response.data)
+  }
+
   const fetchGameBoardAPI = async (gameIdParam) => {
     return await axios.request({
       url: `${API_URL}/api/game/board?game_id=${gameIdParam}`,
@@ -67,11 +80,11 @@ export default function Room() {
       .then((response) => response.data)
   }
 
-
+  let interval = null;
   let polling = false;
   useEffect(() => {
     if (gameId !== null && !polling) {
-      setInterval(async () => {
+      interval = setInterval(async () => {
         try {
           let data = await fetchGameBoardAPI(gameId);
           setGameBoard(data);
@@ -79,11 +92,12 @@ export default function Room() {
 
           if (!admin) {
             if (data.current_selector !== null) {
-              router.push('/room');
+              router.push('/game');
+              clearInterval(interval);
             }
           }
         } catch (error) {
-          alert("Unexpected Error in fetching gameboard, please contact your admin. ")
+          console.log("Unexpected Error in fetching gameboard, please contact your admin. ")
         }
       }, 1000);
     }
@@ -112,6 +126,7 @@ export default function Room() {
       let data = await createGameAPI();
       setGameId(data.game_id);
       setJoinedGame(true);
+      localStorage.setItem('username', username);
       localStorage.setItem('joinedGame', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
@@ -130,6 +145,7 @@ export default function Room() {
       let data = await joinGameAPI();
       setGameId(data.game_id);
       setJoinedGame(true);
+      localStorage.setItem('username', username);
       localStorage.setItem('joinedGame', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
@@ -159,7 +175,7 @@ export default function Room() {
                 <div className='flex flex-col'>
 
                   <div className='text-5xl font-bold text-white'>
-                    {!joinedGame? 'Enter your name' : admin? "Waiting for players to join..." : "Waiting for host to start game .."}
+                    {!joinedGame ? 'Enter your name' : admin ? "Waiting for players to join..." : "Waiting for host to start game .."}
                   </div>
 
                   <div className='p-4 text-left'>
@@ -189,10 +205,8 @@ export default function Room() {
                       <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value); }}></input><div className='pb-6 mt-4'>
                         <button className='clicky-button font-bold' onClick={async (e) => {
                           if (admin) {
-                            alert("create");
                             handleCreateGame();
                           } else {
-                            alert("join");
                             handleJoinGame();
                           }
                         }}>
@@ -204,7 +218,9 @@ export default function Room() {
                   {
                     joinedGame && admin && <div className='p-2 mx-4 rounded-md'>
                       <button className='clicky-button font-bold' onClick={async (e) => {
-                        router.push("/room");
+                        await startGameAPI();
+                        clearInterval(interval);
+                        router.push("/game");
                       }}>
                         <span>Start</span>
                       </button>

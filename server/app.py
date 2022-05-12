@@ -32,7 +32,7 @@ def gameboard():
 
     if (game['current_question'] is not None and \
         game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20))) or \
-        len(game['current_answers']) >= len(game['players']):
+        (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
 
        
         new_vals = {'$set': {
