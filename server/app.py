@@ -35,6 +35,7 @@ def gameboard():
         (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
 
         i = 3
+        new_current_selector = ''
         update_scores = {}
         for ans in game['current_answers']:
             if ans[1] == questions[game['current_question']['category']][game['current_question']['points']]['answer']:
@@ -111,6 +112,7 @@ def start_game():
     return Response(status=200)
 
 # For current selector to choose question
+
 @app.route('/api/game/question/choose', methods=['POST'])
 def choose_question():
     filter = {"_id": ObjectId(request.json['game_id'])}
