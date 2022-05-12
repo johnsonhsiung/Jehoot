@@ -30,33 +30,33 @@ def gameboard():
     filter = {"_id": ObjectId(request.args['game_id'])}
     game = db.gameboard.find_one(filter)
 
-    # if (game['current_question'] is not None and \
-    #     game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20))) or \
-    #     (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
+    if (game['current_question'] is not None and \
+        game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20))) or \
+        (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
 
-    #     i = 3
-    #     new_current_selector = random.choice(list((game['players'].keys())))
-    #     update_scores = {}
-    #     for ans in game['current_answers']:
-    #         if ans[1] == questions[game['current_question']['category']][game['current_question']['points']]['answer']:
-    #             update_scores[ans[0]] = 50*i
-    #             if i == 3:
-    #                 new_current_selector = ans[0]
-    #             i -= 1      
-    #         if i == 0:
-    #             break
+        i = 3
+        new_current_selector = random.choice(list((game['players'].keys())))
+        update_scores = {}
+        for ans in game['current_answers']:
+            if ans[1] == questions[game['current_question']['category']][game['current_question']['points']]['answer']:
+                update_scores[ans[0]] = 50*i
+                if i == 3:
+                    new_current_selector = ans[0]
+                i -= 1      
+            if i == 0:
+                break
        
-    #     new_vals = {'$set': {
-    #         'current_question': None, 
-    #         'current_selector': new_current_selector,
-    #         'current_answers' : []
-    #         }
-    #     }
-    #     for player in update_scores:
-    #         new_vals['$set'][f'players.{player}.total_points'] = game['players'][player]['total_points'] + update_scores[player]
-    #         new_vals['$set'][f'players.{player}.last_round_points'] = update_scores[player]
+        new_vals = {'$set': {
+            'current_question': None, 
+            'current_selector': new_current_selector,
+            'current_answers' : []
+            }
+        }
+        for player in update_scores:
+            new_vals['$set'][f'players.{player}.total_points'] = game['players'][player]['total_points'] + update_scores[player]
+            new_vals['$set'][f'players.{player}.last_round_points'] = update_scores[player]
 
-    #     db.gameboard.update_one(filter, new_vals)
+        db.gameboard.update_one(filter, new_vals)
 
     return parse_json(game)
 
