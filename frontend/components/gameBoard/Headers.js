@@ -12,7 +12,7 @@ class Headers extends React.Component {
         this.props.data.forEach((category, index) => headers.push(<span className='header' style={style} key={index}>{category.category}</span>));
 
         return (
-            <div className='headers'>
+            <div className='headers' style={{color: "#9E8DD1"}}>
                 {headers}
             </div>
         );

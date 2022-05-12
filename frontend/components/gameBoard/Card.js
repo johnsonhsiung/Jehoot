@@ -1,11 +1,11 @@
 import React from "react";
 // import * as audio from './audio';
-import Config from '../../config'
+import Config from "../../config";
 
 class Card extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { view: "points", completed: false, answer: null };
+    this.state = { view: "points", completed: false, answer: null, isAnswerSelected: false };
   }
 
   clickHandler(event) {
@@ -46,7 +46,7 @@ class Card extends React.Component {
       }
     } else {
       if (this.state.view == "question") {
-        if(this.state.answer != null){
+        if (this.state.answer != null) {
           const requestOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -56,13 +56,14 @@ class Card extends React.Component {
               username: localStorage.getItem("username"),
             }),
           };
-          fetch(Config["BACKEND_URL"] + "/question/answer", requestOptions).then(
-            (response) => {
-              if (response.status != 200) {
-                console.log("Error! Please contact the Admin.");
-              }
+          fetch(
+            Config["BACKEND_URL"] + "/question/answer",
+            requestOptions
+          ).then((response) => {
+            if (response.status != 200) {
+              console.log("Error! Please contact the Admin.");
             }
-          );
+          });
         }
         this.setState({ view: "points", flipping: true });
       }
@@ -93,10 +94,10 @@ class Card extends React.Component {
       this.props.category["category"],
       this.props.question.points
     );
-  }
+    }
 
   handleAnswer(answer) {
-    this.setState({answer: answer})
+    this.setState({ answer: answer, isAnswerSelected: true });
   }
 
   getQuestion() {
@@ -105,19 +106,29 @@ class Card extends React.Component {
         <div>{this.props.question.question}</div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {/* <fieldset> */}
-            {this.props.question.options.map((item, index) => {
-              return (
-                <label>
-                  <input
-                    type="radio"
-                    name="jehoot"
-                    value={item}
-                    onChange={() => this.handleAnswer(index)}
-                  />
-                  {item}
-                </label>
-              );
-            })}
+          {this.props.question.options.map((item, index) => {
+            return (
+              <label>
+                <input
+                  type="radio"
+                  name="jehoot"
+                  value={item}
+                  onChange={() => this.handleAnswer(index)}
+                  disabled={this.state.isAnswerSelected}
+                  style={{
+                    font: "inherit",
+                    color: "#009CDF",
+                    width: "20px",
+                    height: "20px",
+                    border: "0.15em solid currentColor",
+                    borderRadius: "50%",
+                    marginRight: "5px"
+                  }}
+                />
+                {item}
+              </label>
+            );
+          })}
           {/* </fieldset> */}
         </div>
       </div>
@@ -132,6 +143,7 @@ class Card extends React.Component {
 
   render() {
     let style = {
+        cursor: "pointer",
         width: this.props.width + "px",
         height: this.props.height + "px",
         transform:
