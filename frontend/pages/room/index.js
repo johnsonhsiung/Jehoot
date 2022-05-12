@@ -107,8 +107,7 @@ export default function Room() {
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
       if (error.response()) {
-        if (error.response.status)
-
+        alert("Either pin incorrect or username already in use.")
       }
       console.log(error);
     }
