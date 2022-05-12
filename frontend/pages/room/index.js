@@ -12,17 +12,24 @@ const axios = require('axios').default;
 export default function Room() {
 
   const [admin, setAdmin] = useState(false);
-  const [adminGameCreated, setAdminGameCreated] = useState(false);
+  const [joinedGame, setJoinedGame] = useState(false);
   const [username, setUsername] = useState('')
-  const [gamePin, setGamePin] = useState(false);
+  const [gamePin, setGamePin] = useState("waiting...");
   const [gameId, setGameId] = useState(null);
   const [gameBoard, setGameBoard] = useState(null);
 
   useEffect(() => {
-    setGamePin(localStorage.getItem('gamePin'))
-    setAdmin(localStorage.getItem('admin'))
+    setAdmin(JSON.parse(localStorage.getItem('admin')))
+
+    let gp = localStorage.getItem('gamePin');
+    if (!admin && !gp) {
+      setGamePin('waiting...')
+    } else {
+      setGamePin(gp);
+    }
+
     setGameId(localStorage.getItem('gameId'))
-    setAdminGameCreated(localStorage.getItem('adminGameCreated'))
+    setJoinedGame(JSON.parse(localStorage.getItem('joinedGame')))
   }, [])
 
 
@@ -41,7 +48,7 @@ export default function Room() {
       url: `${API_URL}/api/game/board?game_id=${gameIdParam}`,
       method: 'GET',
     })
-      .then((response) => response.data)
+      .then((response) => response.data);
   }
 
   const joinGameAPI = async () => {
@@ -61,13 +68,11 @@ export default function Room() {
   let polling = false;
   useEffect(() => {
     if (gameId !== null && !polling) {
-      alert("init");
-      setInterval(() => {
+      setInterval(async () => {
         try {
-          let data = fetchGameBoardAPI(gameId);
+          let data = await fetchGameBoardAPI(gameId);
           setGameBoard(data);
-          setGamePin(data.)
-          console.log(data);
+          setGamePin(data.game_pin);
         } catch (error) {
           alert("Unexpected Error in fetching gameboard, please contact your admin. ")
         }
@@ -97,11 +102,15 @@ export default function Room() {
     try {
       let data = await createGameAPI();
       setGameId(data.game_id);
-      setAdminGameCreated(true);
-      localStorage.setItem('adminGameCreated', true)
+      setJoinedGame(true);
+      localStorage.setItem('joinedGame', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
-      alert(error)
+      if (error.response()) {
+        if (error.response.status)
+
+      }
+      console.log(error);
     }
   }
 
@@ -110,12 +119,13 @@ export default function Room() {
       return alert("Please enter a username to continue")
     }
     try {
-      let data = await createGameAPI();
+      let data = await joinGameAPI();
       setGameId(data.game_id);
-      localStorage.setItem('adminGameCreated')
+      setJoinedGame(true);
+      localStorage.setItem('joinedGame', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
-      alert(error)
+      console.log(error);
     }
   }
 
@@ -141,20 +151,20 @@ export default function Room() {
                 <div className='flex flex-col'>
 
                   <div className='text-5xl font-bold text-white'>
-                    {admin ? "Waiting for other players..." : "Game Manager"}
+                    {!joinedGame? 'Enter your name' : admin? "Waiting for players to join..." : "Waiting for host to start game .."}
                   </div>
 
-                      <div className='p-4 text-left'>
-                  {gameBoard?.current_players?.map((player) => {
-                    return (
+                  <div className='p-4 text-left'>
+                    {gameBoard?.players && Object.keys(gameBoard.players).map((username) => {
+                      return (
                         <div className='mt-2'>
-                          <Avatar name={player.username} round="10px" size="35px" />
-                          <span className='text-slate-50 text-2xl ml-2 align-middle'>{player.username}</span>
+                          <Avatar name={username} round="10px" size="35px" />
+                          <span className='text-slate-50 text-2xl ml-2 align-middle'>{username}</span>
                         </div>
-                        )
-                  })}
-                      </div>
-                        {/* <div className='mt-2'>
+                      )
+                    })}
+                  </div>
+                  {/* <div className='mt-2'>
                           <Avatar name="yy" round="10px" size="35px" />
                           <span className='text-slate-50 text-2xl ml-2 align-middle'>yy</span>
                         </div>
@@ -163,37 +173,34 @@ export default function Room() {
                           <span className='text-slate-50 text-2xl ml-2 align-middle'>kaushal</span>
                         </div> */}
 
-                  { adminGameCreated && <div className='text-slate-50 text-2xl text-center font-normal opacity-30 mb-2'>GamePin - {gamePin}</div> }
+                  {joinedGame && admin && <div className='text-slate-50 text-2xl text-center font-normal opacity-30 mb-2'>GamePin - {gamePin}</div>}
 
-                    {
-                      !adminGameCreated &&
-                      <>
-                        <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value); }}></input><div className='pb-6 mt-4'>
-                          <button className='clicky-button font-bold' onClick={async (e) => {
-                            if (admin) {
-                              let data = await handleCreateGame();
-                            } else {
-                              alert("not implemented yet");
-                            }
-                          }}>
-                            <span>{admin ? "Create" : "Join"}</span></button>
-                        </div>
-                      </>
-                    }
-
-                    {
-                      adminGameCreated && <div className='p-2 mx-4 rounded-md'>
+                  {
+                    !joinedGame &&
+                    <>
+                      <input className='text-2xl p-2 mx-4 rounded-md' placeholder='Enter your name' value={username} onChange={(e) => { setUsername(e.target.value); }}></input><div className='pb-6 mt-4'>
                         <button className='clicky-button font-bold' onClick={async (e) => {
                           if (admin) {
-                            let data = await handleCreateGame();
+                            alert("create");
+                            handleCreateGame();
                           } else {
-                            alert("not implemented yet");
+                            alert("join");
+                            handleJoinGame();
                           }
                         }}>
-                          <span>Start</span>
-                        </button>
+                          <span>{admin ? "Create" : "Join"}</span></button>
                       </div>
-                    }
+                    </>
+                  }
+
+                  {
+                    joinedGame && admin && <div className='p-2 mx-4 rounded-md'>
+                      <button className='clicky-button font-bold' onClick={async (e) => {
+                      }}>
+                        <span>Start</span>
+                      </button>
+                    </div>
+                  }
 
 
                 </div>
