@@ -130,10 +130,10 @@ export default function Room() {
       localStorage.setItem('joinedGame', true)
       localStorage.setItem('gameId', data.game_id)
     } catch (error) {
-      if (error.response()) {
-        alert("Either pin incorrect or username already in use.")
-      }
-      console.log(error);
+      // if (error.response()) {
+      //   alert("Either pin incorrect or username already in use.")
+      // }
+      // console.log(error);
     }
   }
 
