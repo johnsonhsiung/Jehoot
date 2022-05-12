@@ -32,15 +32,29 @@ def gameboard():
 
     if (game['current_question'] is not None and \
         game['current_question_timestamp'] < (datetime.datetime.now() - datetime.timedelta(seconds=20))) or \
-        len(game['current_answers']) >= len(game['players']):
+        (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
 
+        i = 3
+        update_scores = {}
+        for ans in game['current_answers']:
+            if ans[1] == questions[game['current_question'][0]][game['current_question'][1]]['answer']:
+                update_scores[ans[0]] = 50*i
+                if i == 3:
+                    new_current_selector = ans[0]
+                i -= 1      
+            if i == 0:
+                break
        
         new_vals = {'$set': {
             'current_question': None, 
-            'current_selector': random.choice(list((game['players'].keys()))),
-            'current_answers' : {}
+            'current_selector': new_current_selector,
+            'current_answers' : []
             }
-            }
+        }
+        for player in update_scores:
+            new_vals['$set'][f'players.{player}.total_points'] = game['players'][player]['total_points'] + update_scores[player]
+            new_vals['$set'][f'players.{player}.last_round_points'] = update_scores[player]
+
         db.gameboard.update_one(filter, new_vals)
 
     return parse_json(game)
@@ -55,7 +69,7 @@ def create_game():
             value1['used'] = False 
     game = {
         'admin': request.json['admin'],
-        'current_answers' : {}, # {'Rohin' : 0, 'Johnson' : 0, ...}
+        'current_answers' : [], # {'Rohin' : 0, 'Johnson' : 0, ...}
         'players': {}, # {‘Rohin’: {'total_points: 67', 'last_round_points': 5}, 'Johnson' : {'total_points': 5, 'last_round_points' : 5},...} 
         'questions': questions_copy,
         'game_pin': ''.join(str(random.randint(0, 9)) for _ in range(6)),
@@ -115,7 +129,8 @@ def choose_question():
         '$set': {
             'current_question': question, 
             'current_question_timestamp': timestamp,
-            'current_selector': None
+            'current_selector': None,
+            f"questions.{request.json['question'][0]}.{request.json['question'][1]}.used": True
         }
     }
     db.gameboard.update_one(filter, new_vals)
@@ -125,8 +140,8 @@ def choose_question():
 def choose_answer():
     filter = {"_id": ObjectId(request.json['game_id'])}
     user_answer = {
-        '$set': {
-            f'current_answers.{request.json["username"]}': request.json['answer'] # answer is 0,1,2,3 
+        '$push': {
+            'current_answers': (request.json['username'], request.json['answer'])
         }
     }
     db.gameboard.update_one(filter, user_answer)
