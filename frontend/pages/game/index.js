@@ -8,7 +8,7 @@ export default function game() {
   const [playersData, setPlayersData] = useState([]);
   const getData = () => {
     return fetch(
-      Config["BACKEND_URL"] + "/board?game_id=627c28cb29c69f73685278dd"
+      Config["BACKEND_URL"] + "/board?game_id=627c51ba74fd17af054bceed"
     ).then((response) => response.json().then((data) => setGameData(data)));
   };
 

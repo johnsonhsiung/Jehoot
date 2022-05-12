@@ -107,6 +107,7 @@ class App extends React.Component {
             key={categoryIndex + "-" + questionIndex}
             getChosenQuestion={this.props.getChosenQuestion}
             category={category}
+            allData={this.props.entireData}
           />
         );
       });

@@ -1,10 +1,11 @@
 import React from "react";
 // import * as audio from './audio';
+import Config from '../../config'
 
 class Card extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { view: "points", completed: false };
+    this.state = { view: "points", completed: false, answer: null };
   }
 
   clickHandler(event) {
@@ -25,6 +26,49 @@ class Card extends React.Component {
     }
   }
 
+  componentDidUpdate() {
+    // console.log(this.props.allData.current_question != null);
+    // console.log(
+    //   this.props.allData.current_question.category == this.props.category &&
+    //     this.props.allData.current_question.points == this.props.question.points
+    // );
+    if (this.props.allData.current_question != null) {
+      // console.log(this.props.allData.current_question.category)
+      // console.log(this.props.category.category)
+      if (
+        this.props.allData.current_question.category ==
+          this.props.category.category &&
+        this.props.allData.current_question.points == this.props.question.points
+      ) {
+        if (this.state.view != "question") {
+          this.setState({ view: "question", flipping: true });
+        }
+      }
+    } else {
+      if (this.state.view == "question") {
+        if(this.state.answer != null){
+          const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answer: this.state.answer,
+              game_id: this.props.allData["_id"]["$oid"],
+              username: localStorage.getItem("username"),
+            }),
+          };
+          fetch(Config["BACKEND_URL"] + "/question/answer", requestOptions).then(
+            (response) => {
+              if (response.status != 200) {
+                alert("Error! Please contact the Admin.");
+              }
+            }
+          );
+        }
+        this.setState({ view: "points", flipping: true });
+      }
+    }
+  }
+
   getLabelBack() {
     // return this.state.view === "question" ? <>Question</> : <>Answer</>;
 
@@ -40,32 +84,41 @@ class Card extends React.Component {
     // };
   }
 
-  getAnswer(){
-      return this.props.question.options[this.props.question.answer]
+  getAnswer() {
+    return this.props.question.options[this.props.question.answer];
   }
 
-  handleClick(){
-    this.props.getChosenQuestion(this.props.category['category'], this.props.question.points);
+  handleClick() {
+    this.props.getChosenQuestion(
+      this.props.category["category"],
+      this.props.question.points
+    );
+  }
+
+  handleAnswer(answer) {
+    this.setState({answer: answer})
   }
 
   getQuestion() {
     return (
       <div>
         <div>{this.props.question.question}</div>
-        <div style={{display: "flex", flexDirection: "column"}}>
-          {this.props.question.options.map((item) => {
-            return (
-              <label>
-                <input
-                  type="radio"
-                  name={item}
-                  value={item}
-                  onChange={() => console.log(item)}
-                />
-                {item}
-              </label>
-            );
-          })}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {/* <fieldset> */}
+            {this.props.question.options.map((item, index) => {
+              return (
+                <label>
+                  <input
+                    type="radio"
+                    name="jehoot"
+                    value={item}
+                    onChange={() => this.handleAnswer(index)}
+                  />
+                  {item}
+                </label>
+              );
+            })}
+          {/* </fieldset> */}
         </div>
       </div>
     );
@@ -115,7 +168,9 @@ class Card extends React.Component {
               }
             /> */}
             <div>
-              {this.state.view === "question" ? this.getQuestion() : this.getAnswer()}
+              {this.state.view === "question"
+                ? this.getQuestion()
+                : this.getAnswer()}
             </div>
             <img src="./react.svg" />
           </div>
