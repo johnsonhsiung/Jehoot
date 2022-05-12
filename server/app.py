@@ -35,7 +35,7 @@ def gameboard():
         (len(game['current_answers']) >= len(game['players']) and len(game['players']) > 0):
 
         i = 3
-        new_current_selector = ''
+        new_current_selector = random.choice(list((game['players'].keys())))
         update_scores = {}
         for ans in game['current_answers']:
             if ans[1] == questions[game['current_question']['category']][game['current_question']['points']]['answer']:
