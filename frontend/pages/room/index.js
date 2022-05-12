@@ -6,11 +6,14 @@ import Avatar from 'react-avatar';
 import { useQuery } from 'react-query'
 import { API_URL } from '../../constants';
 const axios = require('axios').default;
+import { useRouter } from 'next/router'
+import { route } from 'next/dist/server/router';
 
 
 
 export default function Room() {
 
+  const router = useRouter();
   const [admin, setAdmin] = useState(false);
   const [joinedGame, setJoinedGame] = useState(false);
   const [username, setUsername] = useState('')
@@ -73,6 +76,12 @@ export default function Room() {
           let data = await fetchGameBoardAPI(gameId);
           setGameBoard(data);
           setGamePin(data.game_pin);
+
+          if (!admin) {
+            if (data.current_selector !== null) {
+              router.push('/room');
+            }
+          }
         } catch (error) {
           alert("Unexpected Error in fetching gameboard, please contact your admin. ")
         }
@@ -195,6 +204,7 @@ export default function Room() {
                   {
                     joinedGame && admin && <div className='p-2 mx-4 rounded-md'>
                       <button className='clicky-button font-bold' onClick={async (e) => {
+                        router.push("/room");
                       }}>
                         <span>Start</span>
                       </button>
