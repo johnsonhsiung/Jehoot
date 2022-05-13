@@ -118,6 +118,9 @@ export default function Game() {
 
   function getChosenQuestion(category, points) {
     if (isSelector) {
+      if(gameData['questions'][category][points]['used']){
+        return alert("PLease chose other question");
+      }
       // Send Category and points to teh backend
       console.log(category, points);
       const requestOptions = {
