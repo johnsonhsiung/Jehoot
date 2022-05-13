@@ -240,6 +240,7 @@ export default function Game() {
                 return (
                   <div style={{position: "fixed", right: "25px"}}>
                   <TopCard
+                    key={item["username"]}
                     username={item["username"]}
                     lastPoints={item["last_round_points"]}
                     totalPoints={item["total_points"]}
