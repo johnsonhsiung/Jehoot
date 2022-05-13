@@ -238,7 +238,7 @@ export default function Game() {
               .filter((item) => !userInTop3(item))
               .map((item) => {
                 return (
-                  <div style={{position: "fixed", right: "25px"}}>
+                  <div key={item["username"]} style={{position: "fixed", right: "25px"}}>
                   <TopCard
                     key={item["username"]}
                     username={item["username"]}
