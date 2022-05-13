@@ -164,6 +164,17 @@ export default function Game() {
     });
   };
 
+  const userInTop3 = (item) => {
+    for(let i =0; i<3; i++){
+      if(playersData[i].username == item.username){
+        console.log(item.username, true);
+        return true;
+      }
+    }
+    console.log(item.username, false);
+    return false;
+  }
+
   return (
     <>
       <Head>
@@ -175,7 +186,9 @@ export default function Game() {
         />
       </Head>
       <div
-        className={`relative w-screen h-screen flex flex-col content-center ${gameData['status'] == 'COMPLETED' ? 'justify-center' : ''} items-center overflow-hidden`}
+        className={`relative w-screen h-screen flex flex-col content-center ${
+          gameData["status"] == "COMPLETED" ? "justify-center" : ""
+        } items-center overflow-hidden`}
         style={{
           minHeight: "100vh",
           minHeight: "-webkit-fill-available",
@@ -218,6 +231,21 @@ export default function Game() {
                 )
               );
             })}
+            {playersData
+              .filter(
+                (item) => item.username == localStorage.getItem("username")
+              )
+              .filter((item) => !userInTop3(item))
+              .map((item) => {
+                return (
+                  <div style={{position: "fixed", right: "25px"}}>
+                  <TopCard
+                    username={item["username"]}
+                    lastPoints={item["last_round_points"]}
+                    totalPoints={item["total_points"]}
+                  /></div>
+                );
+              })}
             {playersData.length > 3 && (
               <div className="h-32 m-4 p-4 flex items-center justify-center text-white text-2xl font-bold">
                 +{playersData.length - 3 - 1}

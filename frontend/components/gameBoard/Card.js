@@ -78,7 +78,7 @@ class Card extends React.Component {
     }
 
   handleAnswer(answer) {
-    this.setState({answer: answer});
+    this.setState({answer: answer, isAnswerSelected: true});
     if(answer != null){
       const requestOptions = {
         method: "POST",
